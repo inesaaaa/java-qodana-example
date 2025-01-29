@@ -14,50 +14,41 @@ jobs:
     steps:
       - checkout
 
-      # Step 1: Fix Docker installation by addressing containerd conflict
+      # Step 1: Install Docker CLI if necessary (already addressed previously)
       - run:
           name: Install Docker CLI
           command: |
-            # Remove any conflicting containerd package
-            sudo apt-get remove -y containerd 
-
-            # Update the package list
+            sudo apt-get remove -y containerd
             sudo apt-get update -y
-            
-            # Install Docker prerequisites
-            sudo apt-get install -y \
-              apt-transport-https \
-              ca-certificates \
-              curl \
-              software-properties-common
-
-            # Add Docker's official GPG key and repo
+            sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
             echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-            # Update the package list with Docker's repo
             sudo apt-get update -y
-
-            # Install Docker CLI and related tools
             sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
       - setup_remote_docker:
           version: default
 
-      # Step 2: Build and run tests with Maven
+      # Step 2: Build and test the project with Maven
       - run:
           name: Build and Test Project
           command: mvn clean test
 
-      # Step 3: Run Qodana Static Analysis, Cloud Report
+      # Step 3: Run Qodana without --upload-result
       - run:
           name: Run Qodana
-          command: |
-            docker run --rm \
-              -v "$(pwd):/data/project" \
-              -e QODANA_TOKEN=$QODANA_TOKEN \
-              jetbrains/qodana-jvm:latest \
-              --upload-result
+          command: >
+            docker run --rm
+              -v "$(pwd):/data/project"
+              -v "$(pwd)/qodana_results:/data/results"
+              -e QODANA_TOKEN=$QODANA_TOKEN
+              jetbrains/qodana-jvm:latest
+              --save-report --results-dir /data/results
+
+      # (Optional) Step 4: Print Qodana Results
+      - run:
+          name: Print Qodana Results
+          command: cat qodana_results/report/index.html || echo "Report not generated."
 
 # Define workflow to run the job
 workflows:
