@@ -45,6 +45,7 @@
 #  build-and-check-workflow:
 #    jobs:
 #      - build-and-check
+
 version: '2.1'
 orbs:
   qodana: jetbrains/qodana@2024.3
