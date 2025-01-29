@@ -14,38 +14,27 @@ jobs:
     steps:
       - checkout
 
-      # Step 1: Install Docker CLI if necessary (already addressed previously)
-      - run:
-          name: Install Docker CLI
-          command: |
-            sudo apt-get remove -y containerd
-            sudo apt-get update -y
-            sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            sudo apt-get update -y
-            sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
       - setup_remote_docker:
           version: default
 
-      # Step 2: Build and test the project with Maven
+      # Step 1: Build and test the project with Maven
       - run:
           name: Build and Test Project
           command: mvn clean test
 
-      # Step 3: Run Qodana without --upload-result
+      # Step 2: Run Qodana Static Analysis
       - run:
           name: Run Qodana
-          command: >
-            docker run --rm
-              -v "$(pwd):/data/project"
-              -v "$(pwd)/qodana_results:/data/results"
-              -e QODANA_TOKEN=$QODANA_TOKEN
-              jetbrains/qodana-jvm:latest
-              --save-report --results-dir /data/results
+          command: |
+            docker run --rm \
+              -v "$(pwd):/data/project" \
+              -v "$(pwd)/qodana_results:/data/results" \
+              -e QODANA_TOKEN=$QODANA_TOKEN \
+              jetbrains/qodana-jvm:latest \
+              --save-report \
+              --results-dir /data/results
 
-      # (Optional) Step 4: Print Qodana Results
+      # (Optional) Step 3: Print Qodana Results
       - run:
           name: Print Qodana Results
           command: cat qodana_results/report/index.html || echo "Report not generated."
