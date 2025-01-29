@@ -1,47 +1,62 @@
-version: 2.1
-
-executors:
-  default:
-    docker:
-      - image: cimg/openjdk:17.0  # Use a Java Docker image for Maven builds
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
-
+#version: 2.1
+#
+#executors:
+#  default:
+#    docker:
+#      - image: cimg/openjdk:17.0  # Use a Java Docker image for Maven builds
+#        auth:
+#          username: $DOCKERHUB_USERNAME
+#          password: $DOCKERHUB_PASSWORD
+#
+#jobs:
+#  build-and-check:
+#    executor: default
+#    steps:
+#      - checkout
+#
+#      - setup_remote_docker:
+#          version: default
+#
+#      # Step 1: Build and test the project with Maven
+#      - run:
+#          name: Build and Test Project
+#          command: mvn clean test
+#
+#      # Step 2: Run Qodana Static Analysis
+#      - run:
+#          name: Run Qodana
+#          command: |
+#            docker run --rm \
+#              -v "$(pwd):/data/project" \
+#              -v "$(pwd)/qodana_results:/data/results" \
+#              -e QODANA_TOKEN=$QODANA_TOKEN \
+#              jetbrains/qodana-jvm:latest \
+#              --save-report \
+#              --results-dir /data/results
+#
+#      # (Optional) Step 3: Print Qodana Results
+#      - run:
+#          name: Print Qodana Results
+#          command: cat qodana_results/report/index.html || echo "Report not generated."
+#
+## Define workflow to run the job
+#workflows:
+#  version: 2
+#  build-and-check-workflow:
+#    jobs:
+#      - build-and-check
+version: '2.1'
+orbs:
+  qodana: jetbrains/qodana@2024.3
 jobs:
-  build-and-check:
-    executor: default
+  code-quality:
+    machine:
+      image: 'ubuntu-2004:current'
     steps:
       - checkout
-
-      - setup_remote_docker:
-          version: default
-
-      # Step 1: Build and test the project with Maven
-      - run:
-          name: Build and Test Project
-          command: mvn clean test
-
-      # Step 2: Run Qodana Static Analysis
-      - run:
-          name: Run Qodana
-          command: |
-            docker run --rm \
-              -v "$(pwd):/data/project" \
-              -v "$(pwd)/qodana_results:/data/results" \
-              -e QODANA_TOKEN=$QODANA_TOKEN \
-              jetbrains/qodana-jvm:latest \
-              --save-report \
-              --results-dir /data/results
-
-      # (Optional) Step 3: Print Qodana Results
-      - run:
-          name: Print Qodana Results
-          command: cat qodana_results/report/index.html || echo "Report not generated."
-
-# Define workflow to run the job
+      - qodana/scan
 workflows:
-  version: 2
-  build-and-check-workflow:
+  main:
     jobs:
-      - build-and-check
+      - code-quality:
+          context: qodana
