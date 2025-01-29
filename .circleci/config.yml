@@ -1,0 +1,40 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+      - image: cimg/openjdk:17.0  # Use a Java Docker image for Maven builds
+      - image: docker:24.0        # Docker executor to run Qodana
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+
+jobs:
+  build-and-check:
+    executor: default
+    steps:
+      - checkout
+
+      # Step 1: Set up Docker CLI
+      - run:
+          name: Install Docker CLI
+          command: |
+            apk add --no-cache docker-cli
+
+      - setup_remote_docker:
+          version: 24.0.2
+
+      # Step 2: Build and run tests with Maven
+      - run:
+          name: Build and Test Project
+          command: mvn clean test
+
+      # Step 3: Run Qodana Static Analysis
+      - run:
+          name: Run Qodana
+          command: |
+            docker run --rm \
+              -v "$(pwd):/data/project" \
+              -e QODANA_TOKEN=$QODANA_TOKEN \
+              jetbrains/qodana-jvm:latest \
+              --upload-result
