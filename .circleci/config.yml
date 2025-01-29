@@ -29,7 +29,8 @@ jobs:
           name: Build and Test Project
           command: mvn clean test
 
-      # Step 3: Run Qodana Static Analysis
+
+      # Step 3: Run Qodana Static Analysis , Cloud Report
       - run:
           name: Run Qodana
           command: |

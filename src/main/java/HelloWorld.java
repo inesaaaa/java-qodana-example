@@ -6,6 +6,6 @@ public class HelloWorld {
     // Example method with poor code practices to test Qodana warnings
     public void sampleMethod() {
         int x = 5; // Unused variable
-        System.out.println("This is a sample method");
+        System.out.println("This is a sample method)");
     }
 }
