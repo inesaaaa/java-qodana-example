@@ -29,7 +29,6 @@ jobs:
           name: Build and Test Project
           command: mvn clean test
 
-
       # Step 3: Run Qodana Static Analysis , Cloud Report
       - run:
           name: Run Qodana
@@ -39,3 +38,10 @@ jobs:
               -e QODANA_TOKEN=$QODANA_TOKEN \
               jetbrains/qodana-jvm:latest \
               --upload-result
+
+# Define a workflow to run the job
+workflows:
+  version: 2
+  build-and-check-workflow: # You can name the workflow anything
+    jobs:
+      - build-and-check
