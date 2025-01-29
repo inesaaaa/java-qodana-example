@@ -21,15 +21,17 @@ jobs:
           command: |
             apk add --no-cache docker-cli
 
+      # Remove unsupported Docker version or use a compatible one
       - setup_remote_docker:
-          version: 24.0.2
+          # Removing the version field entirely to use CircleCI's default
+          version: default
 
       # Step 2: Build and run tests with Maven
       - run:
           name: Build and Test Project
           command: mvn clean test
 
-      # Step 3: Run Qodana Static Analysis , Cloud Report
+      # Step 3: Run Qodana Static Analysis, Cloud Report
       - run:
           name: Run Qodana
           command: |
@@ -39,9 +41,9 @@ jobs:
               jetbrains/qodana-jvm:latest \
               --upload-result
 
-# Define a workflow to run the job
+# Define workflow to run the job
 workflows:
   version: 2
-  build-and-check-workflow: # You can name the workflow anything
+  build-and-check-workflow:
     jobs:
       - build-and-check
