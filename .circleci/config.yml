@@ -15,15 +15,14 @@ jobs:
     steps:
       - checkout
 
-      # Step 1: Set up Docker CLI
+      # Step 1: Set up Docker CLI (Using apt instead of apk)
       - run:
           name: Install Docker CLI
           command: |
-            apk add --no-cache docker-cli
+            sudo apt-get update -y
+            sudo apt-get install -y docker-compose docker.io
 
-      # Remove unsupported Docker version or use a compatible one
       - setup_remote_docker:
-          # Removing the version field entirely to use CircleCI's default
           version: default
 
       # Step 2: Build and run tests with Maven
